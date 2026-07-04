@@ -1,0 +1,36 @@
+---
+description: TypeScript / React 编码规范
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+# 编码规范（TS / React）
+
+编辑 `.ts` / `.tsx` 文件时遵循。完整版见 `docs/standards/coding-standards.md`。
+
+## 类型
+
+- `strict` 模式；禁止无理由 `any`，必要时用 `unknown` + 收窄。
+- 导出的函数/接口显式标注类型；优先 `type`/`interface` 明确建模。
+
+## 命名
+
+- 变量/函数：`camelCase`；类型/组件：`PascalCase`；常量：`UPPER_SNAKE_CASE`。
+- 组件文件 `PascalCase.tsx`，工具/模块文件 `kebab-case.ts`。
+- 布尔量以 `is/has/should` 开头。
+
+## 结构
+
+- 组件小而单一职责；UI 与业务逻辑分离（逻辑抽 hooks/service）。
+- 早返回（early return）优于深层嵌套。
+- 副作用集中管理，纯函数优先，便于测试。
+
+## 注释
+
+- 只解释「为什么」（意图、权衡、约束），不复述「做了什么」。
+- 禁止无意义注释（如 `// 循环`、`// 返回结果`）。
+
+## 错误处理
+
+- 不吞异常；对外错误信息清晰，对内保留堆栈。
+- 后端接口返回统一的错误结构（见 tech-spec）。

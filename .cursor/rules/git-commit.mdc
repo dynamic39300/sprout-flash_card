@@ -1,0 +1,41 @@
+---
+description: Git 提交信息规范 (Conventional Commits)
+alwaysApply: false
+---
+
+# Git 提交规范（Conventional Commits）
+
+生成提交信息时遵循。完整版见 `docs/standards/git-workflow.md`。
+
+## 格式
+
+```
+<type>(<scope>): <subject>
+
+<body 可选：解释为什么>
+
+refs specs/NNN-feature-name/spec.md
+```
+
+## type 取值
+
+- `feat` 新功能 ｜ `fix` 修复 ｜ `docs` 文档 ｜ `style` 格式 ｜ `refactor` 重构
+- `test` 测试 ｜ `chore` 杂务/构建 ｜ `perf` 性能 ｜ `build` 构建系统 ｜ `ci` CI
+
+## 规则
+
+- subject 用中文或英文祈使句，简洁（≤ 50 字），结尾不加句号。
+- scope 用功能/模块名，如 `card`、`review`、`streak`、`deploy`。
+- 关联 spec：脚注写 `refs specs/NNN-*/spec.md`。
+- 一次提交聚焦一件事，避免混杂无关改动。
+- 破坏性变更用 `!`：`feat(api)!: ...` 并在 body 说明 `BREAKING CHANGE:`。
+
+## 示例
+
+```
+feat(review): 实现 SM-2 间隔重复调度算法
+
+根据回忆评分动态计算下次复习日期，越熟的卡出现越少。
+
+refs specs/002-daily-review/spec.md
+```

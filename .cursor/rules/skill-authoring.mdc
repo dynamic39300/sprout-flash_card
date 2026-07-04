@@ -1,0 +1,45 @@
+---
+description: 创作或修改大模型 Skill (SKILL.md) 时的设计规范
+globs: ["**/SKILL.md", "skills/**"]
+alwaysApply: false
+---
+
+# Skill 创作规范
+
+创作或修改任何 `SKILL.md` / `skills/` 下内容时遵循。完整方法论见 `docs/standards/skill-design.md`。
+
+## 结构
+
+- 一个技能 = 一个 kebab-case 文件夹 + `SKILL.md`（全大写文件名）。
+- 可选 `scripts/`（可执行代码）、`references/`（按需加载文档）、`assets/`（输出用资源）。
+- **技能文件夹内不放 `README.md`**；文档进 SKILL.md 或 references/。
+- 新技能从 `skills/templates/skill-template/` 复制。
+
+## 渐进式披露（核心）
+
+三级加载：L1 元数据（name+description，始终在上下文）→ L2 SKILL.md 正文（触发时，<500 行）→ L3 捆绑资源（引用时）。
+- 正文接近 500 行则增加分层 + 清晰指针。
+- reference 文件 >300 行加目录。
+- 多领域按变体拆到 references/，模型只读相关那份。
+
+## frontmatter
+
+- `name` + `description` 必需。
+- `description` 是**触发机制**：同时写「做什么 + 何时用」，列出具体触发短语/文件类型；≤1024 字符；不含尖括号；略带主动（防漏触发）；含负向触发。
+- "何时用"信息全部放 description，不放正文。
+
+## 正文写作
+
+- 用祈使句；**解释「为什么」**而非堆砌大写 MUST/NEVER。
+- 给具体示例（Input→Output）；需要固定格式时给精确模板。
+- 保持通用（勿过拟合特例）与精简（删无价值内容）。
+- 重复性工作抽成 `scripts/`。
+
+## 测试与安全
+
+- 客观类技能：`evals/evals.json` 写 2–3 realistic prompt，与"不带技能"基线对比迭代。
+- 遵守"无意外原则"：不含恶意内容，行为与描述一致；输入校验、错误优雅处理。
+
+## 完成前
+
+对照 `docs/standards/skill-design.md` 第 10 节「质量检查清单」逐条核对。

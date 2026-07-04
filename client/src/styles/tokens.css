@@ -1,0 +1,48 @@
+/* 设计令牌 —— 派生自 docs/design/design-system.md（Riso Study 方向）。
+   禁止在组件里散落硬编码颜色，一律引用这些变量。 */
+:root {
+  /* 色板 —— 绿色系（成长 / 希望 / 积累） */
+  --paper: #e7eadf; /* 微微带绿的纸 */
+  --paper-raised: #f3f6ea;
+  --ink: #15201a; /* 墨绿黑：文本与结构 */
+  --ink-soft: #57645b;
+  --grow: #0f9a5a; /* 主题色·成长绿：主行动/揭晓/选中 */
+  --grow-bright: #21b06a; /* 亮绿：错位上层，象征新生 */
+  --pine: #0a5a3c; /* 深松绿：结构/沉稳的下层积累 */
+  --danger: #d4503a; /* 仅用于破坏性/错误，保证一眼可辨 */
+
+  /* 语义别名 */
+  --bg: var(--paper);
+  --surface: var(--paper-raised);
+  --text: var(--ink);
+  --text-muted: var(--ink-soft);
+  --accent: var(--grow);
+  --structure: var(--pine);
+  --success: var(--grow);
+  --hairline: color-mix(in srgb, var(--ink) 14%, transparent);
+
+  /* 字体 */
+  --font-display: 'Bricolage Grotesque', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --font-body: 'PingFang SC', 'Noto Sans SC', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* 间距节奏 (8pt) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
+  /* 圆角 */
+  --r-card: 14px;
+  --r-control: 10px;
+
+  /* 布局 */
+  --content-max: 540px;
+  --nav-h: 68px;
+
+  /* 动效 */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}

@@ -1,0 +1,17 @@
+{
+  "skill_name": "skill-template",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "替换为真实用户会说的任务 prompt（具体、有细节）",
+      "expected_output": "描述期望结果，便于后续补充可验证断言",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "第二个 realistic 测试 prompt",
+      "expected_output": "期望结果描述",
+      "files": []
+    }
+  ]
+}

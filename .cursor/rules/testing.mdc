@@ -1,0 +1,27 @@
+---
+description: 测试规范
+globs: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/tests/**"]
+alwaysApply: false
+---
+
+# 测试规范
+
+编写测试时遵循。完整版见 `docs/standards/testing-standards.md`。
+
+## 必测范围（红线）
+
+- **间隔重复算法（SM-2）**：不同评分下的 interval / ease / due_date 计算。
+- **打卡/连胜与热力图统计**：日期边界、累计天数、按日聚合。
+- 任何纯逻辑 / 工具函数。
+
+## 原则
+
+- 核心逻辑遵循 TDD：先写失败测试，再实现。
+- 测试文件与被测文件同名：`foo.ts` → `foo.test.ts`。
+- 一个测试只验证一件事；命名清晰描述「输入→期望」。
+- 覆盖边界：空值、跨天、时区、连续/中断打卡等。
+- 测试不依赖真实数据库/网络，用内存 SQLite 或 mock。
+
+## 结构（AAA）
+
+- Arrange 准备数据 → Act 执行 → Assert 断言。
