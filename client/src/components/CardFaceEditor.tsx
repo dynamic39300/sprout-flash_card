@@ -1,5 +1,6 @@
-import { useRef, useState, type ClipboardEvent } from 'react';
+import { useEffect, useRef, useState, type ClipboardEvent } from 'react';
 import { uploadImage, ApiError } from '../lib/api';
+import { useImagePreview } from './ImageLightbox';
 
 interface Props {
   side: 'front' | 'back';
@@ -15,7 +16,17 @@ interface Props {
 export function CardFaceEditor(props: Props) {
   const { side, label, placeholder, text, images, onTextChange, onImagesChange, onError } = props;
   const fileRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [uploading, setUploading] = useState(false);
+  const { openPreview } = useImagePreview();
+
+  // 随内容自适应高度：多行编辑时铺开，避免小框内滚动
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [text]);
 
   async function upload(file: File | Blob) {
     setUploading(true);
@@ -48,17 +59,23 @@ export function CardFaceEditor(props: Props) {
     <div className={`riso-card riso-card--${side}`}>
       <span className="riso-card__label">{label}</span>
       <textarea
+        ref={textareaRef}
         className="face-editor__textarea"
         placeholder={placeholder}
         value={text}
         onChange={(e) => onTextChange(e.target.value)}
         onPaste={handlePaste}
-        rows={3}
+        rows={4}
       />
       <div className="thumbs">
         {images.map((src, idx) => (
           <div className="thumb" key={src}>
-            <img src={src} alt="" />
+            <img
+              src={src}
+              alt=""
+              className="thumb__img"
+              onClick={() => openPreview(images, idx)}
+            />
             <button
               type="button"
               className="thumb__remove"

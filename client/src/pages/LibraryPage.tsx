@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react';
 import { listCards, listTags, deleteCard, ApiError } from '../lib/api';
 import type { Card } from '../lib/types';
+import { useImagePreview } from '../components/ImageLightbox';
 
 interface Props {
   notify: (message: string, type?: 'ok' | 'error') => void;
   refreshKey: number;
 }
 
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 export function LibraryPage({ notify, refreshKey }: Props) {
+  const { openPreview } = useImagePreview();
   const [cards, setCards] = useState<Card[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [q, setQ] = useState('');
@@ -98,8 +107,13 @@ export function LibraryPage({ notify, refreshKey }: Props) {
               {card.frontText && <div className="lib-card__text">{card.frontText}</div>}
               {card.frontImages.length > 0 && (
                 <div className="lib-card__images">
-                  {card.frontImages.map((src) => (
-                    <img key={src} src={src} alt="" />
+                  {card.frontImages.map((src, idx) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt=""
+                      onClick={() => openPreview(card.frontImages, idx)}
+                    />
                   ))}
                 </div>
               )}
@@ -109,10 +123,21 @@ export function LibraryPage({ notify, refreshKey }: Props) {
               {card.backText && <div className="lib-card__text">{card.backText}</div>}
               {card.backImages.length > 0 && (
                 <div className="lib-card__images">
-                  {card.backImages.map((src) => (
-                    <img key={src} src={src} alt="" />
+                  {card.backImages.map((src, idx) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt=""
+                      onClick={() => openPreview(card.backImages, idx)}
+                    />
                   ))}
                 </div>
+              )}
+            </div>
+            <div className="lib-card__time">
+              <span>创建 {formatTime(card.createdAt)}</span>
+              {card.updatedAt && card.updatedAt !== card.createdAt && (
+                <span>编辑 {formatTime(card.updatedAt)}</span>
               )}
             </div>
             <div className="lib-card__foot">
