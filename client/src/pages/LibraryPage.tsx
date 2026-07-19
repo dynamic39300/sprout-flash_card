@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { listCards, listTags, deleteCard, ApiError } from '../lib/api';
 import type { Card } from '../lib/types';
 import { useImagePreview } from '../components/ImageLightbox';
@@ -15,6 +15,30 @@ function formatTime(iso: string): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+function todayLocal(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function isDueTodayOrOverdue(card: Card, today: string): boolean {
+  return Boolean(card.dueDate && card.dueDate <= today);
+}
+
+function sortLibrary(cards: Card[], today: string): Card[] {
+  return [...cards].sort((a, b) => {
+    const aDue = isDueTodayOrOverdue(a, today) ? 0 : 1;
+    const bDue = isDueTodayOrOverdue(b, today) ? 0 : 1;
+    if (aDue !== bDue) return aDue - bDue;
+    const ad = a.dueDate ?? '9999';
+    const bd = b.dueDate ?? '9999';
+    if (ad !== bd) return ad.localeCompare(bd);
+    return b.createdAt.localeCompare(a.createdAt);
+  });
+}
+
 export function LibraryPage({ notify, refreshKey }: Props) {
   const { openPreview } = useImagePreview();
   const [cards, setCards] = useState<Card[]>([]);
@@ -22,6 +46,7 @@ export function LibraryPage({ notify, refreshKey }: Props) {
   const [q, setQ] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const today = todayLocal();
 
   async function load() {
     setLoading(true);
@@ -45,6 +70,8 @@ export function LibraryPage({ notify, refreshKey }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, activeTag, refreshKey]);
 
+  const sorted = useMemo(() => sortLibrary(cards, today), [cards, today]);
+
   async function remove(card: Card) {
     try {
       await deleteCard(card.id);
@@ -56,7 +83,7 @@ export function LibraryPage({ notify, refreshKey }: Props) {
   }
 
   return (
-    <div>
+    <div className="library-page">
       <div className="toolbar">
         <input
           className="search"
@@ -67,7 +94,7 @@ export function LibraryPage({ notify, refreshKey }: Props) {
       </div>
 
       {tags.length > 0 && (
-        <div className="tags-row">
+        <div className="tags-row tags-row--compact">
           {tags.map((t) => (
             <button
               key={t}
@@ -81,15 +108,12 @@ export function LibraryPage({ notify, refreshKey }: Props) {
         </div>
       )}
 
-      {!loading && (
-        <div className="section-count">
-          {cards.length > 0 ? `${cards.length} 张卡片` : ''}
-        </div>
+      {!loading && cards.length > 0 && (
+        <div className="section-count">{cards.length} 张卡片</div>
       )}
 
       {loading ? null : cards.length === 0 ? (
         <div className="empty">
-          <div className="empty__mark">{q || activeTag ? '🔍' : '∅'}</div>
           <div className="empty__title">
             {q || activeTag ? '没有匹配的卡片' : '还没有卡片'}
           </div>
@@ -100,59 +124,65 @@ export function LibraryPage({ notify, refreshKey }: Props) {
           </p>
         </div>
       ) : (
-        cards.map((card) => (
-          <article className="lib-card" key={card.id}>
-            <div className="lib-card__face">
-              <span className="lib-card__facelabel">正面</span>
-              {card.frontText && <div className="lib-card__text">{card.frontText}</div>}
-              {card.frontImages.length > 0 && (
-                <div className="lib-card__images">
-                  {card.frontImages.map((src, idx) => (
-                    <img
-                      key={src}
-                      src={src}
-                      alt=""
-                      onClick={() => openPreview(card.frontImages, idx)}
-                    />
-                  ))}
+        <div className="library-list">
+          {sorted.map((card) => {
+            const due = isDueTodayOrOverdue(card, today);
+            return (
+              <article className={`lib-card${due ? ' lib-card--due' : ''}`} key={card.id}>
+                {due && <span className="lib-card__badge">今日到期</span>}
+                <div className="lib-card__face">
+                  <span className="lib-card__facelabel">正面</span>
+                  {card.frontText && <div className="lib-card__text">{card.frontText}</div>}
+                  {card.frontImages.length > 0 && (
+                    <div className="lib-card__images">
+                      {card.frontImages.map((src, idx) => (
+                        <img
+                          key={src}
+                          src={src}
+                          alt=""
+                          onClick={() => openPreview(card.frontImages, idx)}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="lib-card__face">
-              <span className="lib-card__facelabel">背面</span>
-              {card.backText && <div className="lib-card__text">{card.backText}</div>}
-              {card.backImages.length > 0 && (
-                <div className="lib-card__images">
-                  {card.backImages.map((src, idx) => (
-                    <img
-                      key={src}
-                      src={src}
-                      alt=""
-                      onClick={() => openPreview(card.backImages, idx)}
-                    />
-                  ))}
+                <div className="lib-card__face">
+                  <span className="lib-card__facelabel">背面</span>
+                  {card.backText && <div className="lib-card__text">{card.backText}</div>}
+                  {card.backImages.length > 0 && (
+                    <div className="lib-card__images">
+                      {card.backImages.map((src, idx) => (
+                        <img
+                          key={src}
+                          src={src}
+                          alt=""
+                          onClick={() => openPreview(card.backImages, idx)}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="lib-card__time">
-              <span>创建 {formatTime(card.createdAt)}</span>
-              {card.updatedAt && card.updatedAt !== card.createdAt && (
-                <span>编辑 {formatTime(card.updatedAt)}</span>
-              )}
-            </div>
-            <div className="lib-card__foot">
-              <span className="lib-card__meta">
-                {card.tags.length > 0 ? card.tags.map((t) => `#${t}`).join(' ') : '无标签'}
-              </span>
-              <span className="lib-card__due">
-                {card.dueDate ? `复习 ${card.dueDate}` : ''}
-              </span>
-              <button type="button" className="link-danger" onClick={() => remove(card)}>
-                删除
-              </button>
-            </div>
-          </article>
-        ))
+                <div className="lib-card__time">
+                  <span>创建 {formatTime(card.createdAt)}</span>
+                  {card.updatedAt && card.updatedAt !== card.createdAt && (
+                    <span>编辑 {formatTime(card.updatedAt)}</span>
+                  )}
+                </div>
+                <div className="lib-card__foot">
+                  <span className="lib-card__meta">
+                    {card.tags.length > 0 ? card.tags.map((t) => `#${t}`).join(' ') : '无标签'}
+                  </span>
+                  <span className="lib-card__due">
+                    {card.dueDate ? `复习 ${card.dueDate}` : ''}
+                  </span>
+                  <button type="button" className="link-danger" onClick={() => remove(card)}>
+                    删除
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       )}
     </div>
   );

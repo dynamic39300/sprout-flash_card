@@ -56,8 +56,8 @@ export function CardFaceEditor(props: Props) {
   }
 
   return (
-    <div className={`riso-card riso-card--${side}`}>
-      <span className="riso-card__label">{label}</span>
+    <div className={`face-panel face-panel--${side}`}>
+      <span className="face-panel__label">{label}</span>
       <textarea
         ref={textareaRef}
         className="face-editor__textarea"

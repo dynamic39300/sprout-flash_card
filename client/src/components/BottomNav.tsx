@@ -1,31 +1,34 @@
+import type { ComponentType, SVGProps } from 'react';
 import type { TabKey } from '../lib/types';
+import { IconCapture, IconLibrary, IconReview, IconStreak } from './NavIcons';
 
-const ITEMS: { key: TabKey; label: string; glyph: string }[] = [
-  { key: 'review', label: '复习', glyph: '◑' },
-  { key: 'capture', label: '记卡片', glyph: '✎' },
-  { key: 'library', label: '卡片库', glyph: '▤' },
-  { key: 'streak', label: '坚持', glyph: '✦' },
+const ITEMS: { key: TabKey; label: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }[] = [
+  { key: 'review', label: '复习', Icon: IconReview },
+  { key: 'capture', label: '记卡片', Icon: IconCapture },
+  { key: 'library', label: '卡片库', Icon: IconLibrary },
+  { key: 'streak', label: '坚持', Icon: IconStreak },
 ];
 
 interface Props {
   active: TabKey;
   onChange: (t: TabKey) => void;
+  muted?: boolean;
 }
 
-export function BottomNav({ active, onChange }: Props) {
+export function BottomNav({ active, onChange, muted }: Props) {
   return (
-    <nav className="bottom-nav">
-      {ITEMS.map((item) => (
+    <nav className={`bottom-nav${muted ? ' bottom-nav--muted' : ''}`} aria-label="主导航">
+      {ITEMS.map(({ key, label, Icon }) => (
         <button
-          key={item.key}
+          key={key}
           type="button"
-          className={`nav-item${active === item.key ? ' nav-item--active' : ''}`}
-          onClick={() => onChange(item.key)}
+          className={`nav-item${active === key ? ' nav-item--active' : ''}`}
+          onClick={() => onChange(key)}
         >
           <span className="nav-item__glyph" aria-hidden>
-            {item.glyph}
+            <Icon />
           </span>
-          {item.label}
+          {label}
         </button>
       ))}
     </nav>

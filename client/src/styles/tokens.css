@@ -1,14 +1,16 @@
-/* 设计令牌 —— 派生自 docs/design/design-system.md（Riso Study 方向）。
-   禁止在组件里散落硬编码颜色，一律引用这些变量。 */
+/* 设计令牌 —— 派生自 docs/design/design-system.md（Calm Sprout 方向）。
+   禁止在组件里散落硬编码颜色，一律引用这些变量。
+   2026-07-19 视觉刷新：见 docs/design/ui-audit-2026-07-19.md */
 :root {
   /* 色板 —— 绿色系（成长 / 希望 / 积累） */
-  --paper: #e7eadf; /* 微微带绿的纸 */
-  --paper-raised: #f3f6ea;
-  --ink: #15201a; /* 墨绿黑：文本与结构 */
-  --ink-soft: #57645b;
-  --grow: #0f9a5a; /* 主题色·成长绿：主行动/揭晓/选中 */
-  --grow-bright: #21b06a; /* 亮绿：错位上层，象征新生 */
-  --pine: #0a5a3c; /* 深松绿：结构/沉稳的下层积累 */
+  --paper: #f0f1ec; /* 提亮的暖灰底，给卡面留出景深空间 */
+  --paper-raised: #ffffff; /* 纯白卡面，最大化与底色的对比 */
+  --ink: #1a2b22; /* 墨绿黑：文本与结构 */
+  --ink-soft: #6b7c72;
+  --grow: #2d9d6a; /* 主题色·成长绿：主行动/揭晓/选中（降饱和偏叶绿） */
+  --grow-bright: #4ec08a; /* 亮绿：动效上层，象征新生 */
+  --grow-subtle: color-mix(in srgb, var(--grow) 22%, var(--paper-raised)); /* 低饱和替代，用于边框/激活态 */
+  --pine: #1a5c40; /* 深松绿：结构/沉稳的下层积累 */
   --danger: #d4503a; /* 仅用于破坏性/错误，保证一眼可辨 */
 
   /* 语义别名 */
@@ -19,7 +21,11 @@
   --accent: var(--grow);
   --structure: var(--pine);
   --success: var(--grow);
-  --hairline: color-mix(in srgb, var(--ink) 14%, transparent);
+  --hairline: color-mix(in srgb, var(--ink) 8%, transparent);
+
+  /* 阴影 —— 用景深取代硬描边 */
+  --shadow-sm: 0 1px 2px rgba(26, 43, 34, 0.04), 0 2px 6px rgba(26, 43, 34, 0.06);
+  --shadow-md: 0 2px 4px rgba(26, 43, 34, 0.05), 0 6px 16px rgba(26, 43, 34, 0.08);
 
   /* 字体 */
   --font-display: 'Bricolage Grotesque', 'PingFang SC', 'Noto Sans SC', sans-serif;
@@ -36,7 +42,7 @@
   --s-7: 48px;
 
   /* 圆角 */
-  --r-card: 14px;
+  --r-card: 12px;
   --r-control: 10px;
 
   /* 布局 */

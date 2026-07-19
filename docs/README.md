@@ -27,6 +27,8 @@ flash_card 项目的文档中心。本项目采用**规范驱动开发（SDD）*
 | `standards/definition-of-done.md` | 完成的定义（DoD 质量门槛） |
 | `standards/documentation.md` | 文档规范 |
 | `standards/skill-design.md` | 大模型 Skill 设计方法论与最佳实践 |
+| `design/design-system.md` | 前端设计体系（色板/字体/壳层模式） |
+| `design/competitive-analysis.md` | 竞品调研（定位/场景/交互/UI 方法） |
 | `../skills/` | 项目自定义 Skill（含模板 `skill-template`） |
 | `../.env.example` | 环境变量示例（复制为 `.env` 使用） |
 

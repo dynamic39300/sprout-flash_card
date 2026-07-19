@@ -4,18 +4,20 @@ import type { Rating, TodayReviewCard } from '../lib/types';
 
 interface ReviewPageProps {
   onToast?: (msg: string) => void;
+  onSessionChange?: (active: boolean) => void;
+  onGoCapture?: () => void;
 }
 
 type CardPhase = 'question' | 'answer';
 
 const RATINGS: { key: Rating; label: string; sub: string; hotkey: string }[] = [
-  { key: 'again',  label: '再来一次',  sub: 'Again',  hotkey: '1' },
-  { key: 'hard',   label: '有点难',    sub: 'Hard',   hotkey: '2' },
-  { key: 'good',   label: '记住了',    sub: 'Good',   hotkey: '3' },
-  { key: 'easy',   label: '轻而易举',  sub: 'Easy',   hotkey: '4' },
+  { key: 'again', label: '再来一次', sub: 'Again', hotkey: '1' },
+  { key: 'hard', label: '有点难', sub: 'Hard', hotkey: '2' },
+  { key: 'good', label: '记住了', sub: 'Good', hotkey: '3' },
+  { key: 'easy', label: '轻而易举', sub: 'Easy', hotkey: '4' },
 ];
 
-export default function ReviewPage({ onToast }: ReviewPageProps) {
+export default function ReviewPage({ onToast, onSessionChange, onGoCapture }: ReviewPageProps) {
   const [queue, setQueue] = useState<TodayReviewCard[]>([]);
   const [doneIds, setDoneIds] = useState<Set<number>>(new Set());
   const [total, setTotal] = useState(0);
@@ -26,6 +28,13 @@ export default function ReviewPage({ onToast }: ReviewPageProps) {
 
   const current = queue[0] ?? null;
   const doneCount = doneIds.size;
+  const isDone = !loading && queue.length === 0;
+  const sessionActive = !loading && !isDone;
+
+  useEffect(() => {
+    onSessionChange?.(sessionActive);
+    return () => onSessionChange?.(false);
+  }, [sessionActive, onSessionChange]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -43,13 +52,44 @@ export default function ReviewPage({ onToast }: ReviewPageProps) {
     }
   }, [onToast]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
-  // Keyboard shortcuts: Space to reveal, 1-4 to rate
+  const handleReveal = useCallback(() => {
+    setPhase('answer');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setRevealed(true));
+    });
+  }, []);
+
+  const handleRate = useCallback(
+    async (rating: Rating) => {
+      if (!current || submitting) return;
+      setSubmitting(true);
+      try {
+        await submitRating(current.id, rating);
+        if (rating === 'again') {
+          setQueue((q) => [...q.slice(1), q[0]]);
+        } else {
+          setDoneIds((s) => new Set([...s, current.id]));
+          setQueue((q) => q.slice(1));
+        }
+        setPhase('question');
+        setRevealed(false);
+      } catch {
+        onToast?.('评分提交失败，请重试');
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [current, submitting, onToast],
+  );
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === ' ' && phase === 'question' && !loading) {
+      if (e.key === ' ' && phase === 'question' && sessionActive) {
         e.preventDefault();
         handleReveal();
       }
@@ -60,36 +100,7 @@ export default function ReviewPage({ onToast }: ReviewPageProps) {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, loading, submitting]);
-
-  function handleReveal() {
-    setPhase('answer');
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => setRevealed(true));
-    });
-  }
-
-  async function handleRate(rating: Rating) {
-    if (!current || submitting) return;
-    setSubmitting(true);
-    try {
-      await submitRating(current.id, rating);
-      if (rating === 'again') {
-        // Re-queue at the end of the current session so the user practices it again today
-        setQueue((q) => [...q.slice(1), q[0]]);
-      } else {
-        setDoneIds((s) => new Set([...s, current.id]));
-        setQueue((q) => q.slice(1));
-      }
-      setPhase('question');
-      setRevealed(false);
-    } catch {
-      onToast?.('评分提交失败，请重试');
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  }, [phase, sessionActive, submitting, handleReveal, handleRate]);
 
   if (loading) {
     return (
@@ -99,11 +110,8 @@ export default function ReviewPage({ onToast }: ReviewPageProps) {
     );
   }
 
-  const isDone = !loading && queue.length === 0;
-
   return (
-    <div className="review-page">
-      {/* 进度条 */}
+    <div className={`review-page${sessionActive ? ' review-page--session' : ''}`}>
       <div className="review-progress" role="status" aria-label="今日复习进度">
         <div
           className="review-progress__bar"
@@ -115,60 +123,72 @@ export default function ReviewPage({ onToast }: ReviewPageProps) {
       </div>
 
       {isDone ? (
-        /* ── 完成态 ── */
         <div className="review-done">
-          <div className="review-done__sprout" aria-hidden>🌱</div>
           <h2 className="review-done__title">今日已清空</h2>
           <p className="review-done__sub">
             {total === 0
               ? '还没有卡片到期，去记录新知识吧。'
               : `完成了 ${total} 张，继续生长。`}
           </p>
+          {total === 0 && onGoCapture && (
+            <button type="button" className="btn btn--primary review-done__cta" onClick={onGoCapture}>
+              去记卡片
+            </button>
+          )}
         </div>
       ) : (
-        /* ── 翻卡区 ── */
-        <div className="review-card-area">
-          {/* 正面 */}
-          <div className={`riso-card riso-card--front review-card review-card--front ${phase === 'answer' ? 'review-card--collapsed' : ''}`}>
-            <p className="review-card__label">问题</p>
-            <div className="review-card__content">
-              {current?.frontText && (
-                <p className="review-card__text">{current.frontText}</p>
-              )}
-              {current?.frontImages?.map((src) => (
-                <img key={src} src={src} className="review-card__img" alt="" />
-              ))}
-            </div>
+        <div className="review-stage">
+          <div className="review-stage__card">
+            {phase === 'question' ? (
+              <div className="review-card review-card--solo riso-card riso-card--front">
+                <p className="review-card__label">问题</p>
+                <div className="review-card__content">
+                  {current?.frontText && (
+                    <p className="review-card__text">{current.frontText}</p>
+                  )}
+                  {current?.frontImages?.map((src) => (
+                    <img key={src} src={src} className="review-card__img" alt="" />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="review-card review-card--mini">
+                  <p className="review-card__label">问题</p>
+                  <p className="review-card__text review-card__text--compact">
+                    {current?.frontText || '（图片题）'}
+                  </p>
+                </div>
+                <div
+                  className={`review-card review-card--solo riso-card riso-card--back ${revealed ? 'review-card--revealed' : ''}`}
+                >
+                  <p className="review-card__label">答案</p>
+                  <div className="review-card__content">
+                    {current?.backText && (
+                      <p className="review-card__text">{current.backText}</p>
+                    )}
+                    {current?.backImages?.map((src) => (
+                      <img key={src} src={src} className="review-card__img" alt="" />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* 背面（揭晓） */}
-          {phase === 'answer' && (
-            <div className={`riso-card riso-card--back review-card review-card--back ${revealed ? 'review-card--revealed' : ''}`}>
-              <p className="review-card__label">答案</p>
-              <div className="review-card__content">
-                {current?.backText && (
-                  <p className="review-card__text">{current.backText}</p>
-                )}
-                {current?.backImages?.map((src) => (
-                  <img key={src} src={src} className="review-card__img" alt="" />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 操作区 */}
-          <div className="review-actions">
+          <div className="review-dock">
             {phase === 'question' ? (
-              <button className="btn-reveal" onClick={handleReveal}>
-                翻面看答案 <span className="btn-reveal__arrow">↓</span>
+              <button type="button" className="btn-reveal" onClick={handleReveal}>
+                翻面看答案
               </button>
             ) : (
               <div className="review-ratings" role="group" aria-label="难度评分">
                 {RATINGS.map(({ key, label, sub, hotkey }) => (
                   <button
                     key={key}
+                    type="button"
                     className={`btn-rating btn-rating--${key}`}
-                    onClick={() => handleRate(key)}
+                    onClick={() => void handleRate(key)}
                     disabled={submitting}
                   >
                     <span className="btn-rating__label">{label}</span>

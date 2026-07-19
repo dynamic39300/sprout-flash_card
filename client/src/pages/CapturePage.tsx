@@ -80,79 +80,83 @@ export function CapturePage({ notify }: Props) {
   }
 
   return (
-    <div>
-      <CardFaceEditor
-        side="front"
-        label="正面 · 提示"
-        placeholder="写下问题或提示，例如「SM-2 算法的核心思想是？」"
-        text={frontText}
-        images={frontImages}
-        onTextChange={setFrontText}
-        onImagesChange={setFrontImages}
-        onError={(m) => notify(m, 'error')}
-      />
-      <CardFaceEditor
-        side="back"
-        label="背面 · 答案"
-        placeholder="写下答案，可粘贴或上传图片"
-        text={backText}
-        images={backImages}
-        onTextChange={setBackText}
-        onImagesChange={setBackImages}
-        onError={(m) => notify(m, 'error')}
-      />
-
-      <div className="field-label">标签</div>
-      <div className="tags-row">
-        {tags.map((t) => (
-          <span className="tag" key={t}>
-            #{t}
-            <button
-              type="button"
-              className="tag__x"
-              onClick={() => setTags(tags.filter((x) => x !== t))}
-              aria-label={`移除标签 ${t}`}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-        <input
-          className="tag-input"
-          placeholder="加标签 ↵"
-          value={tagInput}
-          onChange={(e) => setTagInput(e.target.value)}
-          onKeyDown={handleTagKey}
-          onBlur={commitTag}
+    <div className="capture-page">
+      <div className="capture-page__body">
+        <CardFaceEditor
+          side="front"
+          label="正面 · 提示"
+          placeholder="写下问题或提示…"
+          text={frontText}
+          images={frontImages}
+          onTextChange={setFrontText}
+          onImagesChange={setFrontImages}
+          onError={(m) => notify(m, 'error')}
         />
-      </div>
-      {tagSuggestions.length > 0 && (
-        <div className="tag-suggestions">
-          {tagSuggestions.map((t) => (
-            <button
-              key={t}
-              type="button"
-              className="tag-suggestion"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                if (!tags.includes(t)) setTags([...tags, t]);
-                setTagInput('');
-              }}
-            >
-              #{t}
-            </button>
-          ))}
-        </div>
-      )}
+        <CardFaceEditor
+          side="back"
+          label="背面 · 答案"
+          placeholder="写下答案，可粘贴或上传图片"
+          text={backText}
+          images={backImages}
+          onTextChange={setBackText}
+          onImagesChange={setBackImages}
+          onError={(m) => notify(m, 'error')}
+        />
 
-      <button
-        type="button"
-        className="btn btn--primary"
-        onClick={save}
-        disabled={isEmpty || saving}
-      >
-        {saving ? '保存中…' : '保存卡片'}
-      </button>
+        <div className="field-label">标签</div>
+        <div className="tags-row tags-row--compact">
+          {tags.map((t) => (
+            <span className="tag" key={t}>
+              #{t}
+              <button
+                type="button"
+                className="tag__x"
+                onClick={() => setTags(tags.filter((x) => x !== t))}
+                aria-label={`移除标签 ${t}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <input
+            className="tag-input"
+            placeholder="加标签 ↵"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagKey}
+            onBlur={commitTag}
+          />
+        </div>
+        {tagSuggestions.length > 0 && (
+          <div className="tag-suggestions">
+            {tagSuggestions.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className="tag-suggestion"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  if (!tags.includes(t)) setTags([...tags, t]);
+                  setTagInput('');
+                }}
+              >
+                #{t}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="capture-dock">
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={save}
+          disabled={isEmpty || saving}
+        >
+          {saving ? '保存中…' : '保存卡片'}
+        </button>
+      </div>
     </div>
   );
 }
