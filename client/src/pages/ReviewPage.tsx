@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getTodayReview, submitRating } from '../lib/api';
 import type { Rating, TodayReviewCard } from '../lib/types';
 
@@ -25,6 +25,8 @@ export default function ReviewPage({ onToast, onSessionChange, onGoCapture }: Re
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const onToastRef = useRef(onToast);
+  onToastRef.current = onToast;
 
   const current = queue[0] ?? null;
   const doneCount = doneIds.size;
@@ -33,8 +35,11 @@ export default function ReviewPage({ onToast, onSessionChange, onGoCapture }: Re
 
   useEffect(() => {
     onSessionChange?.(sessionActive);
-    return () => onSessionChange?.(false);
   }, [sessionActive, onSessionChange]);
+
+  useEffect(() => {
+    return () => onSessionChange?.(false);
+  }, [onSessionChange]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,11 +51,11 @@ export default function ReviewPage({ onToast, onSessionChange, onGoCapture }: Re
       setPhase('question');
       setRevealed(false);
     } catch {
-      onToast?.('加载复习卡失败，请刷新重试');
+      onToastRef.current?.('加载复习卡失败，请刷新重试');
     } finally {
       setLoading(false);
     }
-  }, [onToast]);
+  }, []);
 
   useEffect(() => {
     void load();
@@ -78,12 +83,12 @@ export default function ReviewPage({ onToast, onSessionChange, onGoCapture }: Re
         setPhase('question');
         setRevealed(false);
       } catch {
-        onToast?.('评分提交失败，请重试');
+        onToastRef.current?.('评分提交失败，请重试');
       } finally {
         setSubmitting(false);
       }
     },
-    [current, submitting, onToast],
+    [current, submitting],
   );
 
   useEffect(() => {

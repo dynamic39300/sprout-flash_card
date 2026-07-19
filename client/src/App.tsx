@@ -35,6 +35,14 @@ export function App() {
     if (type === 'ok') setLibRefresh((n) => n + 1);
   }, []);
 
+  const reviewToast = useCallback((msg: string) => notify(msg, 'error'), [notify]);
+  const streakToast = useCallback((msg: string) => notify(msg, 'error'), [notify]);
+  const goCapture = useCallback(() => {
+    setTab('capture');
+    setReviewSession(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   useEffect(() => {
     document.body.classList.toggle('body--session', sessionActive);
     return () => document.body.classList.remove('body--session');
@@ -53,12 +61,12 @@ export function App() {
         {tab === 'library' && <LibraryPage notify={notify} refreshKey={libRefresh} />}
         {tab === 'review' && (
           <ReviewPage
-            onToast={(msg) => notify(msg, 'error')}
+            onToast={reviewToast}
             onSessionChange={setReviewSession}
-            onGoCapture={() => handleTabChange('capture')}
+            onGoCapture={goCapture}
           />
         )}
-        {tab === 'streak' && <StreakPage onToast={(msg) => notify(msg, 'error')} />}
+        {tab === 'streak' && <StreakPage onToast={streakToast} />}
       </main>
 
       {toast && (
